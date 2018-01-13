@@ -1,0 +1,8 @@
+An effective way is to use an coding that is specific and personal.
+
+For example, you tell the human readers that they need to delete all $ in the email address to get the real one.
+In this case, your true email is 1233@example.com
+By encoding with $, you provide your email as 123$3@ex$ample.com
+
+By doing this, the human readers will get your true email by just deleting all the two $.
+However, the machine won't know because it doesn't look for other information besides the pattern assigned to it.
