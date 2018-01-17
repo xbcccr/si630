@@ -19,10 +19,14 @@ for line in fhand:
         email = match1.group(0)
         email = re.sub(r'(\s*(@+|(\s\W*at\W*\s))\s*)+','@',email)
         email = re.sub(r'(\s*([.]|(\s\W*dot\W*\s))\s*)+','.',email)
+        pos = email.find('@')
+        if pos > 64:
+            continue
         fout.write (email+'\n')
         count += 1
     else:
         fout.write ('None'+'\n')
+
 
 fout.close()
 print (count)
