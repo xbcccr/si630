@@ -1,11 +1,29 @@
 import csv
 from sklearn.metrics import f1_score
+import matplotlib.pyplot as plt
+import re
 
 def tokenize(inst):
     lst = inst.split()
     return lst
 
-def train(alpha=0):
+def better_tokenize(inst):
+    line = inst.lower()
+    lst_1 =line.split()
+    lst_2 = list()
+    pattern =r'[a-z0-9]+'
+    pattern2 = r'[a-z0-9]+\'[a-z0-9]+'
+    for w in lst_1:
+        match2 = re.search(pattern2,w)
+        match = re.search(pattern,w)
+        if match2:
+            lst_2.append(match2.group(0))
+        elif match:
+            lst_2.append(match.group(0))
+
+    return lst_2
+
+def train(alpha,tokenize):
     ny0=0
     ny1=0
     dct_nxi_y0 = dict()
@@ -77,13 +95,26 @@ def classify(token,dct_p):
 y_true = list()
 y_pred = list()
 
-with open('dev.tsv') as dev:
-    reader2 = csv.DictReader(dev, dialect='excel-tab')
-    dct_p = train()
-    for row in reader2:
-        lst_txt = tokenize(row['text'])
-        y_pred.append(classify(lst_txt,dct_p))
-        y_true.append(int(row['class']))
+def f1_generation(a,tokenize):
+    with open('dev.tsv') as dev:
+        reader2 = csv.DictReader(dev, dialect='excel-tab')
+        dct_p = train(a,tokenize)
+        for row in reader2:
+            lst_txt = tokenize(row['text'])
+            y_pred.append(classify(lst_txt,dct_p))
+            y_true.append(int(row['class']))
 
-F1 = f1_score(y_true, y_pred)
-print (F1)
+    F1 = f1_score(y_true, y_pred)
+    return F1
+
+f1_1_t = f1_generation(1,tokenize)
+f1_1_b = f1_generation(1,better_tokenize)
+print ('tokenzie: ',f1_1_t)
+print ('better_tokenzie: ', f1_1_b)
+
+lst_a= [0,0.2,0.4,0.6,0.8,1,1.2,1.4]
+lst_f1 = list()
+for a in lst_a:
+    lst_f1.append(f1_generation(a,tokenize))
+plt.plot(lst_a,lst_f1)
+plt.show()
