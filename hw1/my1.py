@@ -104,7 +104,7 @@ def f1_generation(a,tokenize):
             y_pred.append(classify(lst_txt,dct_p))
             y_true.append(int(row['class']))
 
-    F1 = f1_score(y_true, y_pred)
+    F1 = f1_score(y_true, y_pred,average = 'micro')
     return F1
 
 f1_1_t = f1_generation(1,tokenize)

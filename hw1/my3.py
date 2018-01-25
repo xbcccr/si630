@@ -57,3 +57,12 @@ e = [[1],[3],[4],[5]]
 f = np.array(e)
 g = f.T.tolist()
 print (g)
+
+hh = [1,2,4]
+h = np.asarray(hh)
+print (h.shape)
+
+yt = [1,0,1]
+yt = np.asarray(yt).T
+print (yt)
+yt

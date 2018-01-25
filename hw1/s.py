@@ -15,10 +15,6 @@ z:bx, or scores
 yt:lables/targets
 yp:predictions(probability)
 yc:classification(yc=0 or 1)
-
-IMP note: to elementwise multiply, you better use the type ‘ndarray’ (maybe not 'ndmatrix').
-and the shape should be consistent: (3,)*(3,)=(3,); (3,1)*(3,1)=(3,1);but (3,)*(3,1)is (3,3)
-it's always good practice to reshape a defult 1-d array, for example, use reshape() to convert (3,) to (3,1)
 '''
 
 def tokenize(inst):
@@ -91,58 +87,53 @@ def predict_multi(file, with_label,b, vocabulary):
 
     return {'lst_yp':lst_yp,'lst_yt':yt}
 
+
 def sigmoid(z):
     return 1/(1+np.exp(-z))
-
-#gradient for SGD, so take x as an array
-def compute_gradient(x,yt,yp):
-    cost = yt - yp #got a (1,1)ndarray
-    gradient = x.T.dot(cost)
-    return gradient.T
 
 #take the whole x
 def log_likelihood(x, yt, b):
     yt = np.asarray(yt).reshape(x.shape[0],1) #ndarray,shape(x,1)
-    # print ('yt shape',yt.shape,type(yt))
-    z = x.dot(b.T) # ndarray, shape(x,1)
-    # print ('z shape',z.shape, type(z))
+    z = x.dot(b.T) # a (x,1)matrix
+    print ('z shape',z.shape, 'z type',type(z))
     ll = np.sum( yt * z - np.log(1 + np.exp(z)) )
-    # aa = yt *z
-    # bb = np.log(1 + np.exp(z))
-    # print ('shape of y*z',aa.shape,type(aa))
-    # print ('shape of np.log()',bb.shape,type(bb))
+    print ('yt[0]',yt[0],'shape',yt.shape)
+
+    print ('shape of np.log()',np.log(1 + np.exp(z)).shape)
+    a = yt*z
+    print (type(a))
+    print ('shape of yt*z',a.shape)
     return ll
+
+#gradient for SGD, so take x as an array
+def compute_gradient(x,yt,yp):
+    cost = yt - yp #got a (1,1)matrix
+    gradient = x.T.dot(cost)
+    return gradient.T
 
 def logistic_regression(x, yt, learning_rate, num_steps):
     b = np.zeros((1,x.shape[1]))
-    # print ('initate b, the shape', b.shape)
-    lst_index = [row for row in range(x.shape[0])]
-    shuffle(lst_index)
     for step in range(num_steps):
-        i = step % x.shape[0]
+        print ('step',step)
+        i = step
         i = lst_index[i]
         xi = x.getrow(i)
-        zi = xi.dot(b.T)
-        ypi = sigmoid(zi)
-        yti = yt[i]
+        zi = xi.dot(b.T) #a matrix
+        ypi = sigmoid(zi) #a matrix
+        yti = yt[i] #a number
         gradient = compute_gradient(xi,yti,ypi)
         b += learning_rate * gradient
 
-        # if step == 0: #debug
-        #     print ('shape of x1', xi.shape)
-        #     print ('value of zi: ', zi, 'shape',zi.shape)
-        #     print ('value of ypi: ', ypi, 'shape',ypi.shape)
-        #     print ('value of gradient: ', gradient, 'shape',gradient.shape)
-        #     print ('value of update b: ', b, 'shape',b.shape)
+        print ('x1', xi)
+        print ('zi: ', zi)
+        print ('ypi: ', ypi)
+        print ('gradient: ', gradient)
+        print ('updated b: ', b)
 
-        lst_step = []
-        lst_ll = []
-        if (step+1) % 10000 == 0:
-            lst_step.append(step)
-            ll = log_likelihood(x, yt, b)
-            lst_ll.append(ll)
-            print ('step=',step, ',  ll=', ll)
-    return {'b':b,'lst_step':lst_step,'lst_ll':lst_ll}
+        ll = log_likelihood(x, yt, b)
+        print ('ll=', ll)
+        print()
+    return b
 
 def predict(x, b):
     z = x.dot(b.T)
@@ -154,29 +145,22 @@ def predict(x, b):
 def f1(yt,yp):
     return f1_score(yt,yp,average='micro')
 
-lst = get_x_y_matrix('train.tsv',with_label = True)
+lst = get_x_y_matrix('s.tsv',with_label = True)
 train_x = lst[0]
 train_yt = lst[1]
 train_vo = lst[2]
-# print ('shape of train_x: ', train_x.shape)
-# print ('len of train yt', len(train_yt))
-# print ('len of tain_vo: ', len(train_vo))
-dct = logistic_regression(train_x, train_yt,learning_rate = 5e-5, num_steps = 300000)
-b = dct['b']
+print (train_x, train_yt,train_vo)
+# b = logistic_regression(train_x, train_yt,learning_rate = 5e-5, num_steps = 100000)
 # print ('final b shape: ', b)
-lst_step = dct['lst_step']
-lst_ll = dct['lst_ll']
-plt.plot(lst_a,lst_f1)
 
-
-#on dev.tsv
-dct = predict_multi('dev.tsv',True, b, train_vo)
-lst_yp = dct['lst_yp']
-lst_yt = dct['lst_yt']
+# on dev.tsv
+# dct = predict_multi('s.tsv',True, b, train_vo)
+# lst_yp = dct['lst_yp']
+# lst_yt = dct['lst_yt']
 # print (lst_yp)
-
-F1 = f1(lst_yt,lst_yp)
-print (F1)
+#
+# F1 = f1(lst_yt,lst_yp)
+# print (F1)
 
 #on unlabeled test.tsv
 # dct = predict_multi('test.unlabeled.tsv',False, b, train_vo)
