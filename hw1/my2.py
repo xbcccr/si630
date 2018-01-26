@@ -21,40 +21,72 @@ and the shape should be consistent: (3,)*(3,)=(3,); (3,1)*(3,1)=(3,1);but (3,)*(
 it's always good practice to reshape a defult 1-d array, for example, use reshape() to convert (3,) to (3,1)
 '''
 
+# def tokenize(inst):
+#     line = inst.lower()
+#     lst_1 =line.split()
+#     lst_2 = list()
+#     pattern =r'[a-z0-9]+'
+#     pattern2 = r'[a-z0-9]+\'[a-z0-9]+'
+#     pattern3 = r'[!.?]+'
+#     for w in lst_1:
+#         match2 = re.search(pattern2,w)
+#         match = re.search(pattern,w)
+#         match3 = re.search(pattern3,w)
+#         if match2:
+#             lst_2.append(match2.group(0))
+#         elif match:
+#             lst_2.append(match.group(0))
+#         elif match3:
+#             lst_2.append(match3.group(0))
+#     return lst_2
 def tokenize(inst):
     line = inst.lower()
     lst_1 =line.split()
     lst_2 = list()
-    pattern =r'[a-z0-9]+'
-    pattern2 = r'[a-z0-9]+\'[a-z0-9]+'
-    pattern3 = r'[!.?]+'
+
     for w in lst_1:
-        match2 = re.search(pattern2,w)
-        match = re.search(pattern,w)
-        match3 = re.search(pattern3,w)
-        if match2:
-            lst_2.append(match2.group(0))
-        elif match:
-            lst_2.append(match.group(0))
-        elif match3:
-            lst_2.append(match3.group(0))
+        p1 =r'[a-z]+'
+        p2 = r'[0-9]+'
+        p3 = r'[a-z]+\'[a-z]+'
+        p4 = r'[!?]+'
+        p5 = r'\.\.+'
+        m1 = re.findall(p1,w)
+        m2 = re.findall(p2,w)
+        m3 = re.findall(p3,w)
+        m4 = re.findall(p4,w)
+        m5 = re.findall(p5,w)
+        if len(m3)>0:
+            for i in m3:
+                lst_2.append(i)
+        else:
+            for i in m1:
+                lst_2.append(i)
+        for i in m2:
+            lst_2.append(i)
+        for i in m4:
+            lst_2.append(i)
+        for i in m5:
+            lst_2.append(i)
     return lst_2
 
 #get x and y from training data
 def get_x_y_matrix(file, with_label,vocabulary = {}):
-    with open(file) as data:
-        reader2 = csv.DictReader(data, dialect='excel-tab')
+    with open(file,'r', encoding= 'utf-8') as f:
+        rdata = []
+        reader = f.readlines()[1:]
+        for line in reader:
+            rdata.append(re.split("\t",line.replace('\n','')))
 
         yt = []
         indices = []
         data = []
         indptr = [0]
 
-        for row in reader2:
+        for row in rdata:
             if with_label:
-                yt.append(int(row['class']))
+                yt.append(int(row[2]))
 
-            lst_term = tokenize(row['text'])
+            lst_term = tokenize(row[1])
             for term in lst_term:
                 index = vocabulary.setdefault(term, len(vocabulary))
                 indices.append(index)
@@ -67,37 +99,20 @@ def get_x_y_matrix(file, with_label,vocabulary = {}):
 
     return [x,yt,vocabulary]
 
-def predict_multi(file, with_label,b, vocabulary):
-    with open(file) as data:
-        reader2 = csv.DictReader(data, dialect='excel-tab')
-
-        yt = []
-        lst_yp = []
-        for row in reader2: #compute y-predict for each row
-            if with_label:
-                yt.append(int(row['class']))
-
-            x = np.zeros((1,len(vocabulary)+1)) #initiate a vector, including the column of bias
-            x[0,0]=1 #bias set to 1
-            lst_term = tokenize(row['text'])
-            for term in lst_term:
-                if term in vocabulary:
-                    index = vocabulary[term]
-                    x[0,index] += 1
-
-            yp = int(predict(x,b))
-            lst_yp.append(yp)
-
-
-    return {'lst_yp':lst_yp,'lst_yt':yt}
-
 def sigmoid(z):
-    return 1/(1+np.exp(-z))
+    # print()
+    # print('sigmoid')
+    # print ('z',type(z),z.shape)
+    yp = 1/(1+np.exp(-z)) #(1,1)
+    return yp
 
 #gradient for SGD, so take x as an array
 def compute_gradient(x,yt,yp):
+    # print('compute_gradient')
     cost = yt - yp #got a (1,1)ndarray
+    # print ('cost',type(cost),cost.shape)
     gradient = x.T.dot(cost)
+    # print ('gradient',type(gradient),gradient.shape)
     return gradient.T
 
 #take the whole x
@@ -115,6 +130,8 @@ def log_likelihood(x, yt, b):
 
 def logistic_regression(x, yt, learning_rate, num_steps):
     b = np.zeros((1,x.shape[1]))
+    lst_step = []
+    lst_ll = []
     # print ('initate b, the shape', b.shape)
     lst_index = [row for row in range(x.shape[0])]
     shuffle(lst_index)
@@ -127,29 +144,56 @@ def logistic_regression(x, yt, learning_rate, num_steps):
         yti = yt[i]
         gradient = compute_gradient(xi,yti,ypi)
         b += learning_rate * gradient
-
         # if step == 0: #debug
         #     print ('shape of x1', xi.shape)
         #     print ('value of zi: ', zi, 'shape',zi.shape)
         #     print ('value of ypi: ', ypi, 'shape',ypi.shape)
         #     print ('value of gradient: ', gradient, 'shape',gradient.shape)
         #     print ('value of update b: ', b, 'shape',b.shape)
-
-        lst_step = []
-        lst_ll = []
         if (step+1) % 10000 == 0:
-            lst_step.append(step)
+            lst_step.append(step+1)
             ll = log_likelihood(x, yt, b)
             lst_ll.append(ll)
-            print ('step=',step, ',  ll=', ll)
+            print ('step=',step+1, ',  ll=', ll)
     return {'b':b,'lst_step':lst_step,'lst_ll':lst_ll}
 
 def predict(x, b):
     z = x.dot(b.T)
     yp = sigmoid(z)
-    ytr = np.round(yp)
-    ytr.astype(int)
+    # print ('type yp',type(yp),'shape',yp.shape)
+    ytr = np.round(yp) #[[x]]
     return ytr
+
+def predict_multi(file, with_label,b, vocabulary):
+    with open(file,'r', encoding= 'utf-8') as f:
+        rdata = []
+        reader = f.readlines()[1:]
+        for line in reader:
+            rdata.append(re.split("\t",line.replace('\n','')))
+
+        yt = []
+        lst_yp = []
+        lst_id = []
+        for row in rdata: #compute y-predict for each row
+            lst_id.append(row[0])
+            if with_label:
+                yt.append(int(row[2]))
+
+            x = np.zeros((1,len(vocabulary)+1)) #initiate a vector, including the column of bias
+            x[0,0]=1 #bias set to 1
+            lst_term = tokenize(row[1])
+            for term in lst_term:
+                if term in vocabulary:
+                    index = vocabulary[term]
+                    x[0,index] += 1
+
+            yp = int(predict(x,b)) #turn [[x]] to x
+            print (yp)
+            lst_yp.append(yp)
+
+
+    return {'lst_yp':lst_yp,'lst_yt':yt,'lst_id':lst_id}
+
 
 def f1(yt,yp):
     return f1_score(yt,yp,average='micro')
@@ -158,16 +202,27 @@ lst = get_x_y_matrix('train.tsv',with_label = True)
 train_x = lst[0]
 train_yt = lst[1]
 train_vo = lst[2]
+
 # print ('shape of train_x: ', train_x.shape)
 # print ('len of train yt', len(train_yt))
 # print ('len of tain_vo: ', len(train_vo))
 dct = logistic_regression(train_x, train_yt,learning_rate = 5e-5, num_steps = 300000)
-b = dct['b']
-# print ('final b shape: ', b)
 lst_step = dct['lst_step']
 lst_ll = dct['lst_ll']
-plt.plot(lst_a,lst_f1)
+dct = logistic_regression(train_x, train_yt,learning_rate = 5e-4, num_steps = 300000)
+lst_ll_2 = dct['lst_ll']
+dct = logistic_regression(train_x, train_yt,learning_rate = 5e-6, num_steps = 300000)
+lst_ll_3 = dct['lst_ll']
 
+b = dct['b']
+# print ('final b shape: ', b)
+# fig, ax = plt.subplots()
+plt.plot(lst_step,lst_ll,label='lr=5e-5')
+plt.plot(lst_step,lst_ll_2,label='lr=5e-4')
+plt.plot(lst_step,lst_ll_3,label = 'lr=5e-6')
+plt.legend()
+plt.savefig('steps-lr.png')
+plt.close()
 
 #on dev.tsv
 dct = predict_multi('dev.tsv',True, b, train_vo)
@@ -179,6 +234,12 @@ F1 = f1(lst_yt,lst_yp)
 print (F1)
 
 #on unlabeled test.tsv
-# dct = predict_multi('test.unlabeled.tsv',False, b, train_vo)
-# lst_yp = dct['lst_yp']
-# lst_yt = dct['lst_yt']
+dct = predict_multi('test.unlabeled.tsv',False, b, train_vo)
+lst_yp = dct['lst_yp']
+lst_yt = dct['lst_yt']
+y_id = dct['y_id']
+
+with open('test2.csv', 'w') as test2:
+    test2.write("instance_id,class\n")
+    for i in range(len(y_pred)):
+        test2.write(y_id[i]+","+str(y_pred[i])+"\n")
