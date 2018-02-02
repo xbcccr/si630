@@ -142,8 +142,7 @@ def loadData(filename):
 
 	for i in range(len(uniqueWords)):
 		token = uniqueWords[i]
-		onehot_index = np.zeros((len(uniqueWord),1))
-		onehot_index[i][0] = 1
+		onehot_index = i
 		wordcodes[token] = onehot_index
 	debug([(k,v) for k,v in wordcodes.items()[:50]],'wordcodes[:50]')
 	#... replace all word tokens in fullrec with their corresponding one-hot indices.
@@ -233,12 +232,17 @@ def negativeSampleTable(train_data, uniqueWords, wordcounts, exp_power=0.75):
 	#... multiplied by table_size. This table should be stored in cumulative_dict.
 	#... we do this for much faster lookup later on when sampling from this table.
 
-	cumulative_dict = #... fill in
+	cumulative_dict = dict()
 	table_size = 1e8
-
-
-
-
+	key = 0
+	for i in range(len(prob_dist)):
+		prob = prob_dist[i]
+		size = prob * table_size
+		for count in range(size):
+			# cumulative_dict[key] = wordcodes[uniqueWords[i]]
+			cumulative_dict[key] = i
+			key += 1
+	debug(cumulative_dict[:50],'cumulative_dict[:50]')
 	return cumulative_dict
 
 
