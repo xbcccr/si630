@@ -9,34 +9,63 @@ def tokenize(inst):
     lst = inst.split()
     return lst
 
+# def better_tokenize(inst):
+#     line = inst.lower()
+#     lst_1 = line.split()
+#     lst_2 = []#lst_1.copy()
+#
+#     for w in lst_1:
+#         p1 = r'[a-z]+'
+#         p2 = r'[0-9]+'
+#         p3 = r'[a-z]+\'[a-z]+'
+#         p4 = r'[!?]+'
+#         p5 = r'\.\.+'
+#         m1 = re.findall(p1,w)
+#         m2 = re.findall(p2,w)
+#         m3 = re.findall(p3,w)
+#         m4 = re.findall(p4,w)
+#         m5 = re.findall(p5,w)
+#         if len(m3)>0:
+#             for i in m3:
+#                 lst_2.append(i)
+#         else:
+#             for i in m1:
+#                 lst_2.append(i)
+#         for i in m2:
+#             lst_2.append(i)
+#         for i in m4:
+#             lst_2.append(i)
+#         for i in m5:
+#             lst_2.append(i)
+#     return lst_2
 def better_tokenize(inst):
-    line = inst.lower()
-    lst_1 = line.split()
-    lst_2 = []#lst_1.copy()
+    # with open('stopwords.txt','r') as f:
+    #     lines = f.readlines()
+    #     stop_words = []
+    #     for line in lines:
+    #         line = line.strip('\n')
+    #         stop_words.append(line)
+        # print (stop_words)
 
+    line = inst.lower()
+    lst_1 =line.split()
+    lst_2 = list()
+
+    stopwords = ['', 'a', 'about', 'above', 'after', 'again', 'against', 'all', 'am', 'an', 'and', 'any', 'are', "aren't", 'as', 'at', 'be', 'because', 'been','before', 'being', 'below', 'between', 'both', 'but', 'by', "can't", 'cannot', 'could', "couldn't", 'did', "didn't", 'do', 'does', "doesn't", 'doing', "don't", 'down', 'during', 'each', 'few', 'for', 'from', 'further', 'had', "hadn't", 'has', "hasn't", 'have', "haven't", 'having', 'he', "he'd", "he'll", "he's", 'her', 'here', "here's", 'hers', 'herself', 'him', 'himself', 'his', 'how', "how's", 'i', "i'd", "i'll", "i'm", "i've", 'if', 'in', 'into', 'is', "isn't", 'it', "it's", 'its', 'itself', "let's", 'me', 'more', 'most', "mustn't", 'my', 'myself', 'no', 'nor', 'not', 'of', 'off', 'on', 'once', 'only', 'or', 'other', 'ought', 'our', 'ours', 'ourselves', 'out', 'over', 'own', 'same', "shan't", 'she', "she'd", "she'll", "she's", 'should', "shouldn't", 'so', 'some', 'such', 'than', 'that', "that's", 'the', 'their', 'theirs', 'them', 'themselves', 'then', 'there', "there's", 'these', 'they', "they'd", "they'll", "they're", "they've", 'this', 'those', 'through', 'to', 'too', 'under', 'until', 'up', 'very', 'was', "wasn't", 'we', "we'd", "we'll", "we're", "we've", 'were', "weren't", 'what', "what's", 'when', "when's", 'where', "where's", 'which', 'while', 'who', "who's", 'whom', 'why', "why's", 'with', "won't", 'would', "wouldn't", 'you', "you'd", "you'll", "you're", "you've", 'your', 'yours', 'yourself', 'yourselves']
+
+    p1 = r'http.+'
+    p2 = r'@.*'
+    p3 = r'&#.*'
+    p4 = r'[a-z]+.*[a-z]+(?=[^a-z]+)' #end with non-cha
     for w in lst_1:
-        p1 = r'[a-z]+'
-        p2 = r'[0-9]+'
-        p3 = r'[a-z]+\'[a-z]+'
-        p4 = r'[!?]+'
-        p5 = r'\.\.+'
-        m1 = re.findall(p1,w)
-        m2 = re.findall(p2,w)
-        m3 = re.findall(p3,w)
-        m4 = re.findall(p4,w)
-        m5 = re.findall(p5,w)
-        if len(m3)>0:
-            for i in m3:
-                lst_2.append(i)
-        else:
-            for i in m1:
-                lst_2.append(i)
-        for i in m2:
-            lst_2.append(i)
-        for i in m4:
-            lst_2.append(i)
-        for i in m5:
-            lst_2.append(i)
+        w = re.sub(p1,'',w)
+        w = re.sub(p2,'',w)
+        w = re.sub(p3,'',w)
+        m = re.search(p4,w)
+        if m:
+            w = m.group(0)
+        if w not in stopwords:
+            lst_2.append(w)
     return lst_2
 
 def train(tokenize, alpha=0):
@@ -130,7 +159,7 @@ def predict(file,tokenize,with_label, a=0):
     return {'y_true':y_true,'y_pred':y_pred,'y_id':y_id}
 
 def f1(y_true, y_pred,average = 'micro'):
-    F1 = f1_score(y_true, y_pred,average = average)
+    F1 = f1_score(y_true, y_pred, average = average)
     return F1
 
 def f1_short(file,tokenize,with_label, a=0,average = 'micro'):
@@ -147,12 +176,19 @@ print ('no smoothing, a=0: ',f1_a0_t)
 #check a's influence on f1
 lst_a= list(np.arange(0,2,0.1))
 lst_f1 = list()
+f_max = -100
 for a in lst_a:
     dct = predict('dev.tsv',better_tokenize,True,a)
-    lst_f1.append(f1(dct['y_true'],dct['y_pred']))
-plt.plot(lst_a,lst_f1) #when a =0.3, f1 peaks
+    F1= f1(dct['y_true'],dct['y_pred'])
+    lst_f1.append(F1)
+    if f_max < F1:
+        best_a = a
+        f_max = F1
+
+plt.plot(lst_a,lst_f1) #when a =0.6, f1 peaks
 plt.xlabel('smoothing value')
 plt.ylabel('f1 score')
+plt.title(best_a)
 plt.savefig('f1-a.png')
 
 #check better better_tokenize
@@ -162,7 +198,7 @@ print ('tokenize, a = 1: ',f1_a1_t)
 print ('better_tokenzie, a =1: ', f1_a1_b)
 
 # write a csv to kaggle
-dct = predict('test.unlabeled.tsv',better_tokenize, False, a=1)
+dct = predict('test.unlabeled.tsv',better_tokenize, False, a=0.6)
 y_pred = dct['y_pred']
 y_id = dct['y_id']
 
