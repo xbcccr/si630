@@ -56,21 +56,20 @@ wordcodes = {}                          #... dictionary mapping of words to indi
 wordcounts = Counter()                  #... how many times each token occurs
 samplingTable = []                      #... table to draw negative samples from
 
-
-
+unk_idx = 0
+samplingTable_last_key = 0
 
 
 
 #.................................................................................
 #... load in the data and convert tokens to one-hot indices
 #.................................................................................
-
 def debug(x,des):
-	print ('debugging', des + " is: ",x)
+	print ('debugging', str(des), " is: ", x)
 
 def loadData(filename):
-	global uniqueWords, wordcodes, wordcounts
-	override = False
+	global uniqueWords, wordcodes, wordcounts, unk_idx
+	override = True
 	if override:
 		#... for debugging purposes, reloading input file and tokenizing is quite slow
 		#...  >> simply reload the completed objects. Instantaneous.
@@ -84,10 +83,12 @@ def loadData(filename):
 	#... load in the unlabeled data file. You can load in a subset for debugging purposes.
 	handle = open(filename, "r", encoding="utf8")
 	fullconts =handle.read().split("\n")
-	fullconts = [entry.split("\t")[1].replace("<br />", "") for entry in fullconts[1:(len(fullconts)-1)]]
+	fullconts = [line.split("\t")[1].replace("<br />", "") for line in fullconts[1:(len(fullconts)-1)]]
+	#now fullcounts is a list of text of each line
 
 	#... apply simple tokenization (whitespace and lowercase)
-	fullconts = [" ".join(fullconts).lower()]
+	fullconts = [" ".join(fullconts).lower()] #a list of one element
+	debug(fullconts[0][:50],'fullconts[0][:50]')
 
 
 
@@ -95,14 +96,16 @@ def loadData(filename):
 
 	print ("Generating token stream...")
 	#... (TASK) populate fullrec as one-dimension array of all tokens in the order they appear.
-	#... ignore stopwords in this process
 	#... for simplicity, you may use nltk.word_tokenize() to split fullconts.
 	#... keep track of the frequency counts of tokens in origcounts.
 	min_count = 50
 	origcounts = Counter()
-	stopwords = set(stopwords.words('english'))
-	fullrec = [token for token in nltk.word_tokenize(fullconts) if token not in stopwords]
-	origcounts.update(fullcounts)
+	lst_stopwords = set(stopwords.words('english'))
+	lst_words = nltk.word_tokenize(fullconts[0])
+	fullrec = [token for token in lst_words if token not in lst_stopwords]
+	origcounts.update(fullrec)
+	debug(fullrec[:10],'fullrec[:10]')
+	# debug([(k,origcounts[k]) for k in list(origcounts.keys())[:10]], 'origcounts[:10]')
 
 
 
@@ -114,21 +117,15 @@ def loadData(filename):
 		if origcounts[token] < min_count:
 			token = '<UNK>'
 		fullrec_filtered.append(token)
-	debug(fullrec[:50],'fullrec[:50]')
-	debug(fullrec_filtered)[:50],'fullrec_filtered[:50]')
+	debug(fullrec_filtered[:50],'fullrec_filtered[:50]')
 
 
 
 	#... update frequency count of each token in dict wordcounts where: wordcounts[token] = freq(token)
-	for token in fullrec_filtered:
-		if token != '<UNK>':
-			wordcounts[token] = origcounts[token]
-		else:
-			wordcounts[token] = wordcounts.get('<UNK>',0) + 1
-	debug([(k,v) for k,v in wordcounts.items()[:50]],'wordcounts[:50]')
+	wordcounts.update(fullrec_filtered)
+	# debug([(k,wordcounts[k]) for k in list(wordcounts.keys())[:10]],'wordcounts[:10]')
 	#... after filling in fullrec_filtered, replace the original fullrec with this one.
-	fullrec = fullrec_filtered  #??????type
-
+	fullrec = fullrec_filtered
 
 
 
@@ -137,18 +134,25 @@ def loadData(filename):
 	print ("Producing one-hot indicies")
 	#... (TASK) sort the unique tokens into array uniqueWords
 	#... produce their one-hot indices in dict wordcodes where wordcodes[token] = onehot_index(token)
-	uniqueWords = wordcounts.keys().sort()  #??? order, and type
+	uniqueWords = sorted(list(wordcounts.keys()))
 
 
 	for i in range(len(uniqueWords)):
 		token = uniqueWords[i]
 		onehot_index = i
+		if token == '<UNK>':
+			unk_idx = i
 		wordcodes[token] = onehot_index
-	debug([(k,v) for k,v in wordcodes.items()[:50]],'wordcodes[:50]')
+	debug(unk_idx,'unk_idx')
+	# debug([(k,v) for k,v in wordcodes.items()[:50]],'wordcodes[:50]')
 	#... replace all word tokens in fullrec with their corresponding one-hot indices.
 	for i in range(len(fullrec)):
 		fullrec[i] = wordcodes[fullrec[i]]
 	debug(fullrec[:50],'fullrec[:50]')
+
+
+
+
 
 
 	#... close input file handle
@@ -197,7 +201,7 @@ def sigmoid(x):
 
 
 def negativeSampleTable(train_data, uniqueWords, wordcounts, exp_power=0.75):
-	# global wordcounts
+	global samplingTable_last_key
 	#... stores the normalizing denominator (count of all tokens, each count raised to exp_power)
 	max_exp_count = 0
 
@@ -208,11 +212,11 @@ def negativeSampleTable(train_data, uniqueWords, wordcounts, exp_power=0.75):
 	#... store results in exp_count_array.
 	exp_count_array = []
 	for token in uniqueWords:
-		exp_count_array.append(np.power(wordcounts[token],3/4))
-	debug(exp_count_array[:50],'exp_count_array[:50]')
+		exp_count_array.append(np.power(wordcounts[token],exp_power))
+	# debug(exp_count_array[:50],'exp_count_array[:50]')
 
 	max_exp_count = sum(exp_count_array)
-	debug(max_exp_count,'max_exp_count')
+	# debug(max_exp_count,'max_exp_count')
 
 
 	print ("Generating distribution")
@@ -221,7 +225,7 @@ def negativeSampleTable(train_data, uniqueWords, wordcounts, exp_power=0.75):
 	#... using exp_count_array, normalize each value by the total value max_exp_count so that
 	#... they all add up to 1. Store this corresponding array in prob_dist
 	prob_dist = np.divide(exp_count_array,max_exp_count) #get an ndarray
-	debug(prob_dist[:50],'prob_dist[:50]')
+	# debug(prob_dist[:50],'prob_dist[:50]')
 
 
 
@@ -233,16 +237,24 @@ def negativeSampleTable(train_data, uniqueWords, wordcounts, exp_power=0.75):
 	#... we do this for much faster lookup later on when sampling from this table.
 
 	cumulative_dict = dict()
+	global table_size
 	table_size = 1e8
 	key = 0
+	# debug(len(prob_dist),'should be same with len(uniqueWords):11219')
 	for i in range(len(prob_dist)):
 		prob = prob_dist[i]
 		size = prob * table_size
+		size = int(round(size))
 		for count in range(size):
 			# cumulative_dict[key] = wordcodes[uniqueWords[i]]
 			cumulative_dict[key] = i
 			key += 1
-	debug(cumulative_dict[:50],'cumulative_dict[:50]')
+	# debug(size,'last size of the last word')
+	# debug(list(cumulative_dict.keys())[:10])
+	samplingTable_last_key = key-1
+	debug(key-1,'last key')
+	debug(uniqueWords[cumulative_dict[key-1]],'last word')
+	debug(uniqueWords[-1],'last word')
 	return cumulative_dict
 
 
@@ -256,12 +268,19 @@ def negativeSampleTable(train_data, uniqueWords, wordcounts, exp_power=0.75):
 
 
 def generateSamples(context_idx, num_samples):
-	global samplingTable, uniqueWords, randcounter
+	global samplingTable, uniqueWords,samplingTable_last_key
 	results = []
 	#... (TASK) randomly sample num_samples token indices from samplingTable.
 	#... don't allow the chosen token to be context_idx.
 	#... append the chosen indices to results
-
+	i = 0
+	for i in range(num_samples):
+		key = random.randint(0,samplingTable_last_key) #randint(a,b)= a int in [a,b]
+		ng_idx = samplingTable[key]
+		while ng_idx == context_idx:
+			key = random.randint(0,table_size-1)
+			ng_idx = samplingTable[key]
+		results.append(ng_idx)
 
 	return results
 
@@ -273,20 +292,73 @@ def generateSamples(context_idx, num_samples):
 
 
 
-@jit(nopython=True)
-def performDescent(num_samples, learning_rate, center_token, sequence_chars,W1,W2,negative_indices):
-	# sequence chars was generated from the mapped sequence in the core code
+# @jit(nopython=True)
+def performDescent(num_samples, learning_rate, center_token_idx, sequence_chars,W1,W2,negative_indices):
+	# sequence chars = mapped_context = indices for context word
+	# center_token = index for center word
+	global hidden_size
 	nll_new = 0
+	#lst_j will be a list of indices of context_token and its negative samples
+
 	for k in range(0, len(sequence_chars)):
-		#... (TASK) implement gradient descent. Find the current context token from sequence_chars
-		#... and the associated negative samples from negative_indices. Run gradient descent on both
+		#...Run gradient descent on both
 		#... weight matrices W1 and W2.
 		#... compute the total negative log-likelihood and store this in nll_new.
 
+		#key is the current context token from sequence_chars
+		#find the associated negative samples from negative_indices.
+		#ng_oh_idx refers to indices of nagative smapling for one context word
+		lst_j = []
+		lst_j.append(k)
+		for i in range(num_samples):
+			# print (num_samples,k,i, negative_indices)
+			ng_idx = negative_indices[num_samples * k + i]
+			lst_j.append(ng_idx)
+			i += 1
+			print ('lst_j: (shold be 3, 1 for context, 2 for ng)',lst_j)
+
+		#if you store the old vector value in a variable, make sure you are storing a copy of that vector by using,
+		#for example, np.copy(W2[...]) instead of just W2[...].
+		#Otherwise, updates to W2 will automatically update the old value as well, and vice visa
+		h_copy = np.copy(W1[center_token_idx].reshape(1,hidden_size))
+		vi =  W1[center_token_idx].reshape(1,hidden_size)#vi is word embedding for input word
+		for j in lst_j:
+			v2_j = W2[j].reshape(1,hidden_size)
+			if j == k:
+				tj = 1
+			else:
+				tj = 0
+
+			#update vi, and as it's not a copy, it updates W1 meanwhile (but it needs a full loop of lst_j to finish update of W1)
+			vi = vi - learning_rate * (sigmoid(np.dot(v2_j,h_copy.T))-tj) * v2_j
+			#update W2, and as it's not a copy, it updates W2 meanwhile
+			v2_j = v2_j - learning_rate * (sigmoid(np.dot(v2_j,h_copy.T))-tj) * h_copy
+
+		# update h to the newest
+		h = vi
+		#caculating nll for a context word and its negtive samples
+		for j in lst_j:
+			if j == k:
+				tj = 1
+			else:
+				tj = 0
+			v2_j = W2[j].reshape(1,hidden_size)
+
+			# debug(tj,'tj')
+			# debug(np.dot(v2_j,h.T),'np.dot(v2_j,h.T')
+			# debug(sigmoid((-1)**(1-tj)*np.dot(v2_j,h.T)),'sigmoid((-1)**(1-tj)*np.dot(v2_j,h.T))')
+			# debug(- np.log(sigmoid((-1)**(1-tj)*np.dot(v2_j,h.T))),'- np.log(sigmoid((-1)**(1-tj)*np.dot(v2_j,h.T)))')
+
+			nll_new += - np.log(sigmoid((-1)**(1-tj)*np.dot(v2_j,h.T))) # a positive number
 
 
 
-	return [nll_new]
+
+
+
+	# print('one performDescent done')
+	# print()
+	return nll_new
 
 
 
@@ -299,12 +371,13 @@ def performDescent(num_samples, learning_rate, center_token, sequence_chars,W1,W
 
 
 def trainer(curW1 = None, curW2=None):
-	global uniqueWords, wordcodes, fullsequence, vocab_size, hidden_size,np_randcounter, randcounter
+	global uniqueWords, wordcodes, fullsequence, vocab_size, hidden_size,np_randcounter, randcounter, unk_idx
 	vocab_size = len(uniqueWords)           #... unique characters
 	hidden_size = 100                       #... number of hidden neurons
 	context_window = [-2,-1,1,2]            #... specifies which context indices are output. Indices relative to target word. Don't include index 0 itself.
-	nll_results = []                        #... keep array of negative log-likelihood after every 1000 iterations
-
+	nll_results = []
+	unk_idx = wordcodes['<UNK>']                      					#... keep array of negative log-likelihood after every 1000 iterations
+	# debug(unk_idx,'unk_idx')
 
 	#... determine how much of the full sequence we can use while still accommodating the context window
 	start_point = int(math.fabs(min(context_window)))
@@ -342,6 +415,7 @@ def trainer(curW1 = None, curW2=None):
 
 		#... For each epoch, redo the whole sequence...
 		for i in range(start_point,end_point):
+			#i is the sequence of token in the observation, not onehot_index from uniqueWords
 
 			if (float(i)/len(mapped_sequence))>=(prevmark+0.1):
 				print ("Progress: ", round(prevmark+0.1,1))
@@ -353,24 +427,30 @@ def trainer(curW1 = None, curW2=None):
 
 
 			#... (TASK) determine which token is our current input. Remember that we're looping through mapped_sequence
-			center_token = #... fill in
+			center_token_idx = mapped_sequence[i] #onehot_index
+			# debug(uniqueWords[center_token_idx],'center_token')
+			# debug(center_token_idx,'center token index')
+			# debug(unk_idx,'unk_idx')
 			#... (TASK) don't allow the center_token to be <UNK>. move to next iteration if you found <UNK>.
-
+			if center_token_idx == unk_idx:
+				# print()
+				# print('unk,will skip')
+				# print()
+				continue
 
 
 
 
 			iternum += 1
 			#... now propagate to each of the context outputs
-			for k in range(0, len(context_window)):
-
-				mapped_context = [mapped_sequence[i+ctx] for ctx in context_window]
-				negative_indices = []
-				for q in mapped_context:
-					negative_indices += generateSamples(q, num_samples)
-				#... implement gradient descent
-				[nll_new] = performDescent(num_samples, learning_rate, center_token, mapped_context, W1,W2, negative_indices)
-				nll -= nll_new
+			mapped_context = [mapped_sequence[i+ctx] for ctx in context_window]
+			# debug(mapped_context,'context_idx')
+			negative_indices = []
+			for q in mapped_context:
+				# debug(q,'one context')
+				negative_indices += generateSamples(q, num_samples)
+			nll_new = performDescent(num_samples, learning_rate, center_token_idx, mapped_context, W1,W2, negative_indices)
+			nll += nll_new
 
 
 
@@ -532,15 +612,17 @@ if __name__ == '__main__':
 		print ("Total unique words: ", len(uniqueWords))
 		print("Preparing negative sampling table")
 		samplingTable = negativeSampleTable(fullsequence, uniqueWords, wordcounts)
+		samplingTable_keys = list(samplingTable.keys())
 
 
 		#... we've got the word indices and the sampling table. Begin the training.
 		#... NOTE: If you have already trained a model earlier, preload the results (set preload=True) (This would save you a lot of unnecessary time)
 		#... If you just want to load an earlier model and NOT perform further training, comment out the train_vectors() line
 		#... ... and uncomment the load_model() line
-
-		#train_vectors(preload=False)
-		[word_embeddings, proj_embeddings] = load_model()
+		print()
+		print('begin to train')
+		train_vectors(preload=False)
+		# [word_embeddings, proj_embeddings] = load_model()
 
 
 
