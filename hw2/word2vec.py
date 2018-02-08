@@ -300,7 +300,7 @@ def performDescent(num_samples, learning_rate, center_token_idx, sequence_chars,
 	nll_new = 0
 	#lst_j will be a list of indices of context_token and its negative samples
 
-	for k in range(0, len(sequence_chars)):
+	for i in range(0, len(sequence_chars)):
 		#...Run gradient descent on both
 		#... weight matrices W1 and W2.
 		#... compute the total negative log-likelihood and store this in nll_new.
@@ -308,37 +308,41 @@ def performDescent(num_samples, learning_rate, center_token_idx, sequence_chars,
 		#key is the current context token from sequence_chars
 		#find the associated negative samples from negative_indices.
 		#ng_oh_idx refers to indices of nagative smapling for one context word
+		c_idx = sequence_chars[i]
 		lst_j = []
-		lst_j.append(k)
-		for i in range(num_samples):
+		lst_j.append(c_idx)
+		for ii in range(num_samples):
 			# print (num_samples,k,i, negative_indices)
-			ng_idx = negative_indices[num_samples * k + i]
+			ng_idx = negative_indices[num_samples * i + ii]
 			lst_j.append(ng_idx)
-			i += 1
-			print ('lst_j: (shold be 3, 1 for context, 2 for ng)',lst_j)
+			ii += 1
+		# print ('lst_j: (shold be 3, 1 for context, 2 for ng)',lst_j)
 
 		#if you store the old vector value in a variable, make sure you are storing a copy of that vector by using,
 		#for example, np.copy(W2[...]) instead of just W2[...].
 		#Otherwise, updates to W2 will automatically update the old value as well, and vice visa
 		h_copy = np.copy(W1[center_token_idx].reshape(1,hidden_size))
-		vi =  W1[center_token_idx].reshape(1,hidden_size)#vi is word embedding for input word
+		vi_copy =  np.copy(W1[center_token_idx].reshape(1,hidden_size))#vi is word embedding for input word
 		for j in lst_j:
-			v2_j = W2[j].reshape(1,hidden_size)
-			if j == k:
+			v2_j_copy = np.copy(W2[j].reshape(1,hidden_size))
+			if j == c_idx:
 				tj = 1
 			else:
 				tj = 0
 
 			#update vi, and as it's not a copy, it updates W1 meanwhile (but it needs a full loop of lst_j to finish update of W1)
-			vi = vi - learning_rate * (sigmoid(np.dot(v2_j,h_copy.T))-tj) * v2_j
+			vi_copy = vi_copy - learning_rate * (sigmoid(np.dot(v2_j_copy,h_copy.T))-tj) * v2_j_copy
 			#update W2, and as it's not a copy, it updates W2 meanwhile
-			v2_j = v2_j - learning_rate * (sigmoid(np.dot(v2_j,h_copy.T))-tj) * h_copy
+			v2_j_copy = v2_j_copy - learning_rate * (sigmoid(np.dot(v2_j_copy,h_copy.T))-tj) * h_copy
+			#update W2
+			W2[j] = v2_j_copy
 
 		# update h to the newest
-		h = vi
+		W1[center_token_idx] = vi_copy
+		h = vi_copy
 		#caculating nll for a context word and its negtive samples
 		for j in lst_j:
-			if j == k:
+			if j == c_idx:
 				tj = 1
 			else:
 				tj = 0
