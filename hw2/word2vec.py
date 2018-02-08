@@ -9,6 +9,7 @@ import nltk
 from scipy.spatial.distance import cosine
 from nltk.corpus import stopwords
 from numba import jit
+import matplotlib.pyplot as plt
 
 
 
@@ -292,11 +293,11 @@ def generateSamples(context_idx, num_samples):
 
 
 
-# @jit(nopython=True)
+@jit(nopython=True)
 def performDescent(num_samples, learning_rate, center_token_idx, sequence_chars,W1,W2,negative_indices):
 	# sequence chars = mapped_context = indices for context word
 	# center_token = index for center word
-	global hidden_size
+	# hidden_size = 100
 	nll_new = 0
 	#lst_j will be a list of indices of context_token and its negative samples
 
@@ -321,19 +322,19 @@ def performDescent(num_samples, learning_rate, center_token_idx, sequence_chars,
 		#if you store the old vector value in a variable, make sure you are storing a copy of that vector by using,
 		#for example, np.copy(W2[...]) instead of just W2[...].
 		#Otherwise, updates to W2 will automatically update the old value as well, and vice visa
-		h_copy = np.copy(W1[center_token_idx].reshape(1,hidden_size))
-		vi_copy =  np.copy(W1[center_token_idx].reshape(1,hidden_size))#vi is word embedding for input word
+		h_copy = np.copy(W1[center_token_idx])
+		vi_copy =  np.copy(W1[center_token_idx])#vi is word embedding for input word
 		for j in lst_j:
-			v2_j_copy = np.copy(W2[j].reshape(1,hidden_size))
+			v2_j_copy = np.copy(W2[j])
 			if j == c_idx:
 				tj = 1
 			else:
 				tj = 0
 
 			#update vi, and as it's not a copy, it updates W1 meanwhile (but it needs a full loop of lst_j to finish update of W1)
-			vi_copy = vi_copy - learning_rate * (sigmoid(np.dot(v2_j_copy,h_copy.T))-tj) * v2_j_copy
+			vi_copy = vi_copy - learning_rate * (sigmoid(np.dot(v2_j_copy,h_copy))-tj) * v2_j_copy
 			#update W2, and as it's not a copy, it updates W2 meanwhile
-			v2_j_copy = v2_j_copy - learning_rate * (sigmoid(np.dot(v2_j_copy,h_copy.T))-tj) * h_copy
+			v2_j_copy = v2_j_copy - learning_rate * (sigmoid(np.dot(v2_j_copy,h_copy))-tj) * h_copy
 			#update W2
 			W2[j] = v2_j_copy
 
@@ -346,14 +347,16 @@ def performDescent(num_samples, learning_rate, center_token_idx, sequence_chars,
 				tj = 1
 			else:
 				tj = 0
-			v2_j = W2[j].reshape(1,hidden_size)
+			v2_j = W2[j]
 
 			# debug(tj,'tj')
 			# debug(np.dot(v2_j,h.T),'np.dot(v2_j,h.T')
 			# debug(sigmoid((-1)**(1-tj)*np.dot(v2_j,h.T)),'sigmoid((-1)**(1-tj)*np.dot(v2_j,h.T))')
 			# debug(- np.log(sigmoid((-1)**(1-tj)*np.dot(v2_j,h.T))),'- np.log(sigmoid((-1)**(1-tj)*np.dot(v2_j,h.T)))')
 
-			nll_new += - np.log(sigmoid((-1)**(1-tj)*np.dot(v2_j,h.T))) # a positive number
+#numba.errors.TypingError: Failed at nopython (nopython frontend)
+#cannot unify int64 and array(float64, 2d, C) for 'nll_new', defined at word2vec.py (301)
+			nll_new += - np.log(sigmoid((-1)**(1-tj)*np.dot(v2_j,h))) # a positive number
 
 
 
@@ -403,7 +406,7 @@ def trainer(curW1 = None, curW2=None):
 
 
 	#... set the training parameters
-	epochs = 5
+	epochs = 1
 	num_samples = 2
 	learning_rate = 0.05
 	nll = 0
@@ -458,9 +461,15 @@ def trainer(curW1 = None, curW2=None):
 
 
 
-
+	lst_steps = []
+	iii=0
 	for nll_res in nll_results:
-		print (nll_res)
+		lst_steps.append(10000*iii)
+		iii += 1
+	plt.plot(lst_steps,nll_results)
+	plt.savefig('steps_nll.png')
+	plt.close()
+
 	return [W1,W2]
 
 
