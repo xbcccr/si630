@@ -295,6 +295,7 @@ def generateSamples(context_idx, num_samples):
 
 @jit(nopython=True)
 def performDescent(num_samples, learning_rate, center_token_idx, sequence_chars,W1,W2,negative_indices):
+	#in @jit, cannot use dictionary and global
 	# sequence chars = mapped_context = indices for context word
 	# center_token = index for center word
 	# hidden_size = 100
@@ -354,8 +355,6 @@ def performDescent(num_samples, learning_rate, center_token_idx, sequence_chars,
 			# debug(sigmoid((-1)**(1-tj)*np.dot(v2_j,h.T)),'sigmoid((-1)**(1-tj)*np.dot(v2_j,h.T))')
 			# debug(- np.log(sigmoid((-1)**(1-tj)*np.dot(v2_j,h.T))),'- np.log(sigmoid((-1)**(1-tj)*np.dot(v2_j,h.T)))')
 
-#numba.errors.TypingError: Failed at nopython (nopython frontend)
-#cannot unify int64 and array(float64, 2d, C) for 'nll_new', defined at word2vec.py (301)
 			nll_new += - np.log(sigmoid((-1)**(1-tj)*np.dot(v2_j,h))) # a positive number
 
 
@@ -406,7 +405,7 @@ def trainer(curW1 = None, curW2=None):
 
 
 	#... set the training parameters
-	epochs = 1
+	epochs = 5
 	num_samples = 2
 	learning_rate = 0.05
 	nll = 0
@@ -479,10 +478,10 @@ def trainer(curW1 = None, curW2=None):
 #.................................................................................
 
 def load_model():
-	handle = open("saved_W1.data(4)","rb")
+	handle = open("saved_W1_1.data","rb")
 	W1 = np.load(handle)
 	handle.close()
-	handle = open("saved_W2.data(4)","rb")
+	handle = open("saved_W2_1.data","rb")
 	W2 = np.load(handle)
 	handle.close()
 	return [W1,W2]
@@ -597,6 +596,31 @@ def prediction(target_word):
 	#... Note that the cosine() function from scipy.spatial.distance computes a DISTANCE so you need to convert that to a similarity.
 	#... return a list of top 10 most similar words in the form of dicts,
 	#... each dict having format: {"word":<token_name>, "score":<cosine_similarity>}
+	w1 = word_embeddings
+	# debug(w1.shape,'w1.shape')
+	target_word_idx = wordcodes[target_word]
+	vt = w1[target_word_idx]
+	# debug(vt,'vt')
+
+	tem_lst = []
+	for token in uniqueWords:
+		token_idx = wordcodes[token]
+		vi = w1[token_idx]
+		cosine_similarity = 1 - cosine(vi,vt)
+		tem_lst.append((token, cosine_similarity))
+
+	tem_lst.sort(key=lambda x:x[1], reverse=True)
+	# debug(tem_lst,'tem_list')
+	tem_lst = tem_lst[:10]
+	# debug(tem_lst,'tem_list')
+	for (token,cosine_similarity) in tem_lst:
+		outputs.append({'word':token,'score':cosine_similarity})
+
+
+	return outputs
+
+
+
 
 
 
@@ -634,8 +658,8 @@ if __name__ == '__main__':
 		#... ... and uncomment the load_model() line
 		print()
 		print('begin to train')
-		train_vectors(preload=False)
-		# [word_embeddings, proj_embeddings] = load_model()
+		# train_vectors(preload=False)
+		[word_embeddings, proj_embeddings] = load_model()
 
 
 
@@ -645,14 +669,16 @@ if __name__ == '__main__':
 
 
 		#... we've got the trained weight matrices. Now we can do some predictions
-		targets = ["good", "bad", "scary", "funny"]
-		for targ in targets:
-			print("Target: ", targ)
-			bestpreds= (prediction(targ))
-			for pred in bestpreds:
-				print (pred["word"],":",pred["score"])
-			print ("\n")
-
+		with open('p9_output.csv', 'w') as test2:
+			test2.write("target_word,similar_word,similar_score\n")
+			targets = ["good", "bad", "scary", "funny"]
+			for targ in targets:
+				print("Target: ", targ)
+				bestpreds= (prediction(targ))
+				for pred in bestpreds:
+					print (pred["word"],":",pred["score"])
+					test2.write(targ+","+pred["word"]+","+str(pred["score"])+"\n")
+				print ("\n")
 
 
 		#... try an analogy task. The array should have three entries, A,B,C of the format: A is to B as C is to ?
