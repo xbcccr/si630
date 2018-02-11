@@ -380,7 +380,7 @@ def trainer(curW1 = None, curW2=None):
 	global uniqueWords, wordcodes, fullsequence, vocab_size, hidden_size,np_randcounter, randcounter, unk_idx
 	vocab_size = len(uniqueWords)           #... unique characters
 	hidden_size = 100                       #... number of hidden neurons
-	context_window = [-4,-3,-2,-1]            #... specifies which context indices are output. Indices relative to target word. Don't include index 0 itself.
+	context_window = [1,2,3,4]            #... specifies which context indices are output. Indices relative to target word. Don't include index 0 itself.
 	nll_results = []
 	unk_idx = wordcodes['<UNK>']                      					#... keep array of negative log-likelihood after every 1000 iterations
 	# debug(unk_idx,'unk_idx')
@@ -485,19 +485,19 @@ def load_model():
 	# handle = open("saved_W2_1.data","rb")
 	# W2 = np.load(handle)
 
-	#context window:[-4,-3,-2,-1]
-	handle = open("saved_W1_2.data","rb")
-	W1 = np.load(handle)
-	handle.close()
-	handle = open("saved_W2_2.data","rb")
-	W2 = np.load(handle)
-
-	# #context window:[1,2,3,4]
-	# handle = open("saved_W1_3.data","rb")
+	# #context window:[-4,-3,-2,-1]
+	# handle = open("saved_W1_2.data","rb")
 	# W1 = np.load(handle)
 	# handle.close()
-	# handle = open("saved_W2_3.data","rb")
+	# handle = open("saved_W2_2.data","rb")
 	# W2 = np.load(handle)
+
+	#context window:[1,2,3,4]
+	handle = open("saved_W1_3.data","rb")
+	W1 = np.load(handle)
+	handle.close()
+	handle = open("saved_W2_3.data","rb")
+	W2 = np.load(handle)
 
 
 
@@ -522,21 +522,21 @@ def save_model(W1,W2):
 	# handle = open("saved_W2_1.data","wb+")
 	# np.save(handle, W2, allow_pickle=False)
 
-	#context window: [-4,-3,-2,-1]
-	handle = open("saved_W1_2.data","wb+")
-	np.save(handle, W1, allow_pickle=False)
-	handle.close()
-
-	handle = open("saved_W2_2.data","wb+")
-	np.save(handle, W2, allow_pickle=False)
-
-	# #context window: [1,2,3,4]
-	# handle = open("saved_W1_3.data","wb+")
+	# #context window: [-4,-3,-2,-1]
+	# handle = open("saved_W1_2.data","wb+")
 	# np.save(handle, W1, allow_pickle=False)
 	# handle.close()
     #
-	# handle = open("saved_W2_3.data","wb+")
+	# handle = open("saved_W2_2.data","wb+")
 	# np.save(handle, W2, allow_pickle=False)
+
+	#context window: [1,2,3,4]
+	handle = open("saved_W1_3.data","wb+")
+	np.save(handle, W1, allow_pickle=False)
+	handle.close()
+
+	handle = open("saved_W2_3.data","wb+")
+	np.save(handle, W2, allow_pickle=False)
 
 
 
@@ -707,7 +707,7 @@ if __name__ == '__main__':
 
 
 		#... we've got the trained weight matrices. Now we can do some predictions
-		with open('p8_output_1.csv', 'w') as test2:
+		with open('p8_output_2.csv', 'w') as test2:
 			test2.write("target_word,similar_word,similar_score\n")
 			targets = ["good", "bad", "scary", "funny"]
 			for targ in targets:
@@ -719,17 +719,17 @@ if __name__ == '__main__':
 				print ("\n")
 
 
-		#Task 4..test word similar generated with my model
-		# with open('intrinsic-test_v2.tsv','r') as handle:
-		# 	fulltext =handle.read().split("\n")
-		# 	with open('intrinsic-test-scored.csv','w') as handle2:
-		# 		handle2.write('id,similarity\n')
-		# 		for line in fulltext[1:(len(fulltext)-1)]:
-		# 			[idex,word1,word2] = line.split('\t')
-		# 			v_word1 = word_embeddings[wordcodes[word1]]
-		# 			v_word2 = word_embeddings[wordcodes[word2]]
-		# 			similarity = 1-cosine(v_word1,v_word2)
-		# 			handle2.write(idex +","+ str(similarity) +"\n")
+		# Task 4..test word similar generated with my model
+		with open('intrinsic-test_v2.tsv','r') as handle:
+			fulltext =handle.read().split("\n")
+			with open('intrinsic-test-scored.csv','w') as handle2:
+				handle2.write('id,similarity\n')
+				for line in fulltext[1:(len(fulltext)-1)]:
+					[idex,word1,word2] = line.split('\t')
+					v_word1 = word_embeddings[wordcodes[word1]]
+					v_word2 = word_embeddings[wordcodes[word2]]
+					similarity = 1-cosine(v_word1,v_word2)
+					handle2.write(idex +","+ str(similarity) +"\n")
 
 
 
