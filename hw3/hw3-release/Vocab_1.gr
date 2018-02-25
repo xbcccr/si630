@@ -1,0 +1,524 @@
+# This is a hand-generated set of preterminal rules.
+# It specifies a simple tag set which will be handled by the S2
+# grammar and which can (though doesn't necessarily need to be)
+# handled by the S1 grammar.
+#
+# The weights given here may be changed, but no new vocabulary
+# items are to be added.
+
+# Miscellaneous items that don't fit into any of our simple tags are
+# given to Misc.  You will want to develop your own tags for these!
+
+# Punctuations
+1   Punc    .
+
+# Singular and mass nouns.  Notice that only the
+# ones that start with consonants get our Noun tag.
+8    Noun    castle
+10    Noun    king
+4    Noun    defeater
+5    Noun    sovereign
+7    Noun    servant
+3    Noun    corner
+5    Noun    land
+3    Noun    quest
+2    Noun    chalice
+8    Noun    master
+5    Noun    horse
+3    Noun    fruit
+2    Noun    swallow
+5    Noun    sun
+5    Noun    winter
+1    Noun    coconut
+1    Noun    pound
+1    Noun    husk
+6    Noun    home
+1    Noun    weight
+8    Noun    story
+
+# Determiners.
+20    Det    a
+5    Det    another
+5    Det    any
+8    Det    each
+8    Det    every
+6    Det    no
+10    Det    that
+20    Det    the
+10    Det    this
+
+# Prepositions.
+4    Prep    above
+5    Prep    across
+10    Prep    at
+4    Prep    below
+4    Prep    by
+10    Prep    for
+5    Prep    from
+10    Prep    into
+4    Prep    near
+15    Prep    of
+7    Prep    on
+5    Prep    over
+7    Prep    through
+10    Prep    with
+
+# Proper nouns.  Note that our Proper tag is just for people.
+1    Proper    Arthur
+1    Proper    Guinevere
+1    Proper    _Sir _Lancelot
+1    Proper    _Sir _Bedevere
+1    Proper    _Sir _Knight
+1    Proper    Zoot
+1    Proper    Dingo
+1    Proper    Patsy
+1    Proper    _Uther _Pendragon
+1    _Sir      Sir
+1    _Lancelot Lancelot
+1    _Bedevere Bedevere
+1    _Uther    Uther
+1    _Pendragon Pendragon
+1    _Knight   Knight
+
+# Verbs (third person singular present).
+# Note that only transitive verbs get our VerbT tag,
+# and some of those could also function as intransitives!
+2    VerbT    has
+1    VerbT    covers
+1    VerbT    is
+2    VerbT    drinks
+1    VerbT    carries
+2    VerbT    rides
+
+# End-of-sentence.
+1    End    !
+5    End    .
+1    End    ?
+
+# Pauses.
+10    Pauses    ,
+1    Pauses    ...
+1    Pauses    --
+1    Pauses    ;
+1    Pauses    :
+
+# Coordinating conjunctions.
+5    C-Conj    and
+1    C-Conj    but
+1    C-Conj    or
+1    C-Conj    either
+1    C-Conj    nor
+1    C-Conj    neither
+3    C-Conj    so
+
+# Numbers.
+10    Num    eight
+10    Num    five
+1    Num    one
+1    Num    5.5
+8    Num    sixty
+1    Num    5,000
+
+# Expletive.
+1    Expletive    there
+
+# Subordinating conjunctions.
+1    _that    that
+2    S-Conj    so
+1    S-Conj    while
+3    S-Conj    because
+1    S-Conj    if
+
+# Modals.
+1    Modal    can
+1    Modal    could
+1    Modal    may
+1    Modal    might
+1    Modal    must
+1    Modal    ought
+1    Modal    shall
+1    Modal    should
+1    Modal    will
+1    Modal    would
+
+
+# Adjectives.
+1    Adj    bloody
+1    Adj    weary
+1    Adj    unable
+1    Adj    trusty
+1    Adj    further
+1    Adj    sacred
+1    Adj    tropical
+1    Adj    indigenous
+1    Adj    temperate
+1    Adj    hot
+1    Adj    lucky
+1    Adj    simple
+1    Adj    tiny
+1    Adj    hard
+1    Adj    sensational
+1    Adj    comparable
+1    Adj    angolian
+1    Adj    yellow
+1    Adj    plodding
+
+# Comparative adjectives.
+1    C-Adj    bloodier
+1    C-Adj    wearier
+1    C-Adj    trustier
+1    C-Adj    hotter
+1    C-Adj    simpler
+1    C-Adj    tinier
+1    C-Adj    harder
+
+# Superlative adjectives.
+1    S-Adj    bloodiest
+1    S-Adj    weariest
+1    S-Adj    trustiest
+1    S-Adj    hottest
+1    S-Adj    simplest
+1    S-Adj    tiniest
+1    S-Adj    hardest
+
+# Plural nouns.
+1    Pl-noun    coconuts
+1    Pl-noun    halves
+1    Pl-noun    snows
+1    Pl-noun    mountains
+1    Pl-noun    areas
+1    Pl-noun    strangers
+1    Pl-noun    inches
+1    Pl-noun    snakes
+1    Pl-noun    ants
+1    Pl-noun    nights
+
+# More proper nouns, not people.
+
+1    Proper-np    Camelot
+1    Proper-np    England
+1    Proper-np    _Holy _Grail
+1    _Holy   Holy
+1    _Grail  Grail
+1    Proper-np    _Round _Table
+1    _Round  Round
+1    _Table  Table
+
+# Plural proper nouns.
+1    Pl-Proper    Britons
+1    Pl-Proper    Saxons
+
+# Personal pronouns.
+1    Pronoun    I
+1    Pronoun    he
+1    Pronoun    her
+1    Pronoun    him
+1    Pronoun    it
+1    Pronoun    one
+1    Pronoun    she
+1    Pronoun    them
+1    Pronoun    they
+
+
+# Possessive personal pronouns
+1    P-Pronoun    her
+1    P-Pronoun    his
+1    P-Pronoun    its
+1    P-Pronoun    their
+
+# Adverbs.
+1    Adv    again
+1    Adv    already
+1    Adv    currently
+1    Adv    frequently
+1    Adv    precisely
+1    Adv    south
+1    Adv    successfully
+1    Adv    unfortunately
+
+# 'do'/'does'
+1    _do    do
+1    _does    does
+
+# 'to'
+1    _To    to
+
+# 'not'
+1    _Not    not
+
+# 'have'
+1    _have    have
+# 'be'
+1    _be    be
+#is
+1   Be  is
+
+# Verbs (base form).
+1    Verb    have
+1    Verb    speak
+5    Verb    cover
+1    Verb    be
+5    Verb    ride
+5    Verb    drink
+5    Verb    grow
+1    Verb    carry
+1    Verb    suggest
+5    Verb    migrate
+1    Verb    know
+
+# Verbs (past tense).
+1    Verb-p    had
+5    Verb-p    spoke
+1    Verb-p    covered
+1    Be-p    was
+1    Be-p    were
+5    Verb-p    rode
+5    Verb-p    drank
+5    Verb-p    grew
+1    Verb-p    carried
+1    Verb-p    suggested
+1    Verb-p    migrated
+1    Verb-p    knew
+
+# Verbs (present participles).
+1    Verb-pr    having
+1    Verb-pr    speaking
+1    Verb-pr    covering
+1    Verb-pr    being
+1    Verb-pr    riding
+1    Verb-pr    drinking
+1    Verb-pr    growing
+1    Verb-pr    carrying
+1    Verb-pr    suggesting
+1    Verb-pr    migrating
+1    Verb-pr    knowing
+
+# Verbs (past participle).
+1    Verb-pp    had
+1    Verb-pp    spoken
+1    Verb-pp    covered
+1    _been    been
+1    Verb-pp    ridden
+1    Verb-pp    drunk
+1    Verb-pp    grown
+1    Verb-pp    carried
+1    Verb-pp    suggested
+1    Verb-pp    migrated
+1    Verb-pp    known
+
+# More third person singular verbs.
+1    Verb-3    speaks
+1    Verb-3    grows
+1    Verb-3    goes
+1    Verb-3    migrates
+1    Verb-3    suggests
+1    Verb-3    knows
+1    Verb-3    does
+
+# Verbs (present, plural, third person).
+1    Verb-p-3    have
+1    Verb-p-3    speak
+1    Verb-p-3    cover
+1    Be    are
+1    Verb-p-3    ride
+1    Verb-p-3    drink
+1    Verb-p-3    grow
+1    Verb-p-3    carry
+1    Verb-p-3    suggest
+1    Verb-p-3    migrate
+1    Verb-p-3    know
+
+# Wh-determiners.
+1    Wh    that
+1    Wh    what
+1    Wh    which
+
+# Wh-pronouns.
+1    _what    what
+1    _who    who
+
+# Wh possessive pronoun.
+1    _Whose    whose
+
+# Wh-adverbs
+1    Wh-Adv    how
+1    Wh-Adv    when
+1    Wh-Adv    where
+1    Wh-Adv    why
+
+
+# Possessive marker.
+1    _'s    's
+
+# Some additional words from Monty Python
+1    Misc    pull
+1    Adj    other
+1    Pronoun    you
+1    Be    'm
+1    Adj    dead
+1    Pronoun    you
+1    Be    're
+1    Misc    fooling
+1    Misc    anyone
+1    Pronoun    y'
+1    Verb    feel
+1    Adj    happy
+1    Verb    feel
+1    Misc    happy
+1    Misc    'm
+1    Num    thirty
+1    Num    seven
+1    Misc    'm
+1    Adj    old
+1    Misc    you
+1    Misc    're
+1    Verb-pr    fooling
+1    Misc    yourself
+1    Pronoun    we
+1    Misc    're
+1    Misc    living
+1    Prep    in
+1    Noun    dictatorship
+1    Misc    we
+1    Misc    're
+1    Misc    an
+1    Adj    anarcho-syndicalist
+1    Misc    commune
+1    Adj    all
+1    Pl-noun    decisions
+1    Noun    officer
+1    Verb-p    ratified
+1    Adj    special
+1    Adv    biweekly
+1    Noun    meeting
+1    Noun    order
+1    Misc    you
+1    Adj    quiet
+1    Noun    well
+1    Misc    'ow
+1    _Do    did
+1    Misc    you
+1    Verb    become
+1    Misc    then
+1    Be    am
+1    Misc    your
+1    Adj    mean
+1    Verb-p    went
+1    Prep    around
+1    Verb-pr    sayin'
+1    Misc    an
+1    Noun    emperor
+1    Misc    just
+1    Adj    some
+1    Verb-pp    moistened
+1    Misc    bink
+1    Misc    lobbed
+1    Misc    scimitar
+1    Misc    me
+1    Misc    'd
+1    Verb    put
+1    Misc    me
+1    Misc    away
+1    Misc    now
+1    Misc    we
+1    Verb    see
+1    Noun    violence
+1    Verb    inherent
+1    Misc    in
+1    Noun    system
+1    Misc    oh
+1    Verb    come
+1    Verb    see
+1    Noun    violence
+1    Misc    inherent
+1    Misc    in
+1    Noun    system
+1    Verb    help
+1    Misc    'm
+1    Verb-p    repressed
+1    Noun    peasant
+1    Misc    you
+1    Verb    fight
+1    Noun    strength
+1    Adj    many
+1    Pl-noun    men
+1    Prep    with
+1    Misc    none
+1    Verb    pass
+1    Verb    move
+1    Noun    man
+1    Verb    come
+1    Misc    you
+1    Misc    pansy
+1    Noun    victory
+1    Misc    mine
+1    Misc    you
+1    Verb-pr    going
+1    Verb    bleed
+1    Misc    me
+1    Misc    you
+1    Misc    're
+1    Misc    loony
+1    Misc    all
+1    Adj    right
+1    Misc    we
+1    Misc    'll
+1    Misc    call
+1    Verb    draw
+1    Misc    'll
+1    Verb    bite
+1    Misc    your
+1    Pl-noun    legs
+1    Misc    off
+1    Misc    we
+1    Verb-p    found
+1    Noun    witch
+1    Misc    we
+1    Verb    burn
+1    Misc    'm
+1    Misc    witch
+1    Misc    well
+1    Misc    second
+1    Verb-p    thought
+1    Verb    let
+1    Verb    go
+1    Adj    silly
+1    Noun    place
+1    Noun    King
+1    Misc    your
+1    Noun    purpose
+1    Noun    Quest
+1    Verb    go
+1    Verb    tell
+1    Misc    your
+1    Misc    we
+1    Verb-p    charged
+1    Noun    God
+1    Verb    blow
+1    Misc    my
+1    Noun    nose
+1    Misc    you
+1    Adj    so-called
+1    Proper    Arthur-king
+1    Misc    you
+1    Adj    all
+1    Misc    your
+1    Adj    silly
+1    Noun    English
+1    Misc    knnnniggets
+1    Misc    thppppt
+1    Adj    strange
+1    Noun    person
+1    Misc    now
+1    Verb    go
+1    Misc    away
+1    Verb    taunt
+1    Misc    you
+1    Noun    second
+1    Misc    time-a
+1    Misc    ah
+1    Misc    your
+1    Noun    mother
+1    Verb    run
+1    Misc    away
+

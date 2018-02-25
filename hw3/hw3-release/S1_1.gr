@@ -1,0 +1,197 @@
+# The start symbol is TOP.
+
+# These two rules are required; choose their weights carefully!
+70  TOP  S1
+30   TOP  S2
+
+# This is a very, very, very simple grammar to get you started.
+
+
+60   S1   Sentence
+3   S1  Q VP
+10   S1  BaseVerbP
+1   S1  VP
+1   S1  BQ Clause
+2   S1  _do Notdo
+1   S1  Sentence _Sentence
+1   S1  PPC Sentence
+1   S1  WHQ Sentence
+1   S1  BEQ VP
+1   S1  S1 Marks
+
+
+1   PPC Wh-Adv Sentence
+
+
+
+20   Sentence    NP  VP
+4   Sentence   Sentence Marks
+1   _Sentence   S-Conj Sentence
+
+1   Marks   Pauses
+8   Marks   Punc
+1   Marks   End
+
+1   Notdo   _Not BaseVerbP
+
+1   BaseVerbP    _BaseVerbP Marks
+
+1   _BaseVerbP    Verb   NP
+10   _BaseVerbP    Verb
+
+1   _Do     _do
+1   _Do    _does
+
+1   Q   _Do NP
+
+1   BEQ BE  NP
+
+1   WHQ     Wh-Adv  _Do
+1   WHQ     Wh-pronoun  _Do
+1   WHQ     _Whose  _Do
+
+
+1   Wh-pronoun _who
+1   Wh-pronoun _what
+
+1   BQ  BE NDoing
+1   BQ  BQ  End
+
+1   NDoing  NP Verb-pr
+
+4   VP  _VP
+1   VP  _VP Marks
+
+30   _VP  _VP NP
+1   _VP   _VP VPP
+3   _VP   _VP PP
+80   _VP   Vbar
+3   _VP   Vbar PP
+3   _VP   Vbar VPP
+3   _VP   Vbar NP
+1   _VP  Bedone
+1   _VP  Modal DO
+1   _VP  Modal Vbar
+1   _VP  BE
+1   _VP  BE _Adj
+1   _VP  _VP __VP
+1   _VP  _VP  Clause
+
+1   __VP C-Conj VP
+
+
+
+
+
+5   DO bedoing
+3   DO havebeendoing
+1   DO Beendoing
+3   DO Havedone
+1   DO Havebeendone
+1   DO DO VPP
+1   DO  DO  PP
+
+1   bedoing   _be Verb-pr
+1   havebeendoing _have Beendoing
+1   Beendoing   _been Verb-pr
+1   Havedone    _have   Verb-pp
+1   Bedone  BE Verb-pp
+1   Havebeendone    _have beendone
+1   beendone    _been Verb-pp
+
+1   BE  Be
+1   BE  Be-p
+
+
+30 Vbar Verb
+10 Vbar VerbT
+5 Vbar VerbT NP
+3 Vbar VerbT Adv
+1 Vbar Verb-p
+1 Vbar Verb-3
+1 Vbar Verb-p-3
+3   Vbar    Havedone
+
+1   Havedone    _Have   Verb-pp
+1   _Have   have
+
+999   NP  _NP
+1   NP  _NP Marks
+
+
+5   _NP   Proper
+5   _NP   Proper-np
+1   _NP  _NP PP
+90   _NP  Nbar
+1   _NP  Verb-pr
+1   _NP  Verb-pr VPP
+1   _NP  Verb-pr PP
+6   _NP  Pronoun
+5   _NP  Belong  _Noun
+1   _NP  __NP __NP
+2   _NP  _NP __NP
+1   _NP  _NP  Clause
+1   _NP  _NP TWY
+1   _NP  _NP Whatclause
+1   _NP  Wh S1
+1   _NP   Eitheror  Eitheror
+1   _NP     _NP  Eitheror
+1   _NP Eitheror
+
+1   __NP    C-Conj NP
+1   TWY Pauses NP
+
+1   Whatclause Wh Sentence
+1   Whatclause Wh-Adv Sentence
+
+1   Clause  S-Conj  Sentence
+1   Clause  Sentence
+1   Clause  _who VP
+
+
+1   Eitheror C-Conj Sentence
+
+
+
+
+
+
+
+1   Belong    Proper     _'s
+1   Belong    Proper-np  _'s
+1   Belong    _Noun     _'s
+
+10  Nbar _Noun
+30  Nbar Det _Noun
+5  Nbar Proper
+20   Nbar    Det ADJNOUN
+10   Nbar    Num     _Noun
+10   Nbar    P-Pronoun   _Noun
+5   Nbar    Det Proper-np
+
+
+
+
+1   ADJNOUN    _Adj    _Noun
+
+2   _Noun   Noun
+1   _Noun   Pl-noun
+
+
+4   _Adj Adj
+1   _Adj C-Adj
+1   _Adj S-Adj
+
+
+
+10   PP   Prep NP
+1   pp  Wh VP
+10   VPP Adv
+1   VPP  _To  Proper
+1   VPP  _To  NP
+1   VPP  _To  Proper-np
+
+
+
+# in case you use S1.gr by itself
+1   S2   Misc
